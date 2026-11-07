@@ -10,10 +10,11 @@
   2. 표지·판권, 교재 사용 안내, 차례 쪽은 쪽 전체를 제외한다.
   3. 확실한 잡음 줄을 지운다: URL, 인쇄 시각(OCR 변형 포함), 쪽 번호(n/N), 숫자만 있는 줄,
      한글이 없는 줄(영어 문장 포함), 책 제목 머리말, 교재 구성 표시.
-  4. 애매한 줄(한 글자 줄, 낱글자 나열, 영문 비율이 높은 줄)은 집계에서 빼고
+  4. 애매한 줄(한 글자 줄, 같은 글자 반복, 낱글자 나열, 영문 비율이 높은 줄)은 집계에서 빼고
      uncertain_lines.csv에 남긴다.
   5. 남은 줄을 이어 붙인다. 인쇄 줄바꿈으로 끊긴 단어(`봅\\n시다`)는 kiwi 분석 점수를 비교해
      붙인 쪽이 JOIN_MARGIN 이상 높을 때만 공백 없이 붙이고, 나머지는 공백으로 잇는다.
+     앞 어절이 조사·어미로 끝나면(완결된 어절) JOIN_MARGIN_COMPLETE 이상일 때만 붙인다.
 
 원본 파일은 읽기만 한다. 지운 줄과 판단 근거는 모두 CSV로 남긴다.
 """
@@ -267,8 +268,9 @@ def main():
         "removed_by_reason": dict(Counter(r[4] for r in removed_rows).most_common()),
         "uncertain_by_reason": dict(Counter(r[4] for r in uncertain_rows).most_common()),
         "n_joins": len(join_log),
-        "settings": {"join_margin": JOIN_MARGIN, "join_margin_complete": JOIN_MARGIN_COMPLETE, "title_similarity": TITLE_SIMILARITY,
-                     "latin_ratio": LATIN_RATIO, "section_markers": sorted(SECTION_MARKERS)},
+        "settings": {"join_margin": JOIN_MARGIN, "join_margin_complete": JOIN_MARGIN_COMPLETE,
+                     "title_similarity": TITLE_SIMILARITY, "latin_ratio": LATIN_RATIO,
+                     "section_markers": sorted(SECTION_MARKERS)},
         "analyzer": {"name": "kiwipiepy", "version": kiwipiepy.__version__},
         "elapsed_seconds": round(time.time() - t0, 1),
     }
