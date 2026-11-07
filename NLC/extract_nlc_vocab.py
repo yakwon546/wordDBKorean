@@ -3,7 +3,8 @@
 
 nlc_clean.py가 만든 NLC_clean/ 폴더를 입력으로 쓴다.
 분석 로직(kiwipiepy, 품사 목록, 태그 정규화, 원형 규칙, per_million, CSV 열 구성)은
-NIKL 스크립트 extract_written_corpus_vocab.py의 함수와 설정을 그대로 가져와 쓴다 (비교 호환 조건).
+NIKL 스크립트(20261104_NLCxcorpus/extract_written_corpus_vocab.py)와 같다 (비교 호환 조건).
+NIKL 스크립트가 없는 폴더에서도 실행되도록 해당 함수와 설정을 아래에 그대로 옮겨 두었다.
 
 집계 단위: 문서 = 교과서 1권, 문단 = 1쪽 (first_para_id 예: '지혜의 나무 9.p40')
 
@@ -21,18 +22,46 @@ import unicodedata
 from collections import Counter, defaultdict
 from pathlib import Path
 
-# NIKL 스크립트와 같은 폴더에 두고 실행한다. 분석 로직을 그대로 가져온다.
-sys.path.insert(0, str(Path(__file__).resolve().parent))
 try:
-    from extract_written_corpus_vocab import (DEFAULT_POS, POS_LABELS, TEXT_PREVIEW_LEN,
-                                              base_tag, eojeol_at, make_lemma)
+    import kiwipiepy
+    from kiwipiepy import Kiwi
 except ImportError:
-    sys.exit("extract_written_corpus_vocab.py를 찾지 못했습니다. 이 스크립트와 같은 폴더에 두고 실행하세요.")
+    sys.exit("kiwipiepy가 설치되어 있지 않습니다. 먼저 `python3 -m pip install kiwipiepy==0.24.0`을 실행하세요.")
 
-import kiwipiepy
-from kiwipiepy import Kiwi
-
+sys.path.insert(0, str(Path(__file__).resolve().parent))
 from nlc_clean import EXPECTED_KIWI_VERSION, TARGET_FILES
+
+# ---- NIKL 스크립트(extract_written_corpus_vocab.py)와 동일한 설정·함수 (수정 금지: 비교 호환 조건) ----
+DEFAULT_POS = "NNG,NNP,VV,VA,MAG,MAJ"
+PREDICATE_TAGS = {"VV", "VA", "VX", "VCP", "VCN"}  # 원형을 어간 + '다'로 만드는 품사
+TEXT_PREVIEW_LEN = 200
+PUNCT = "\"'“”‘’()[]{}<>《》〈〉「」『』.,!?…·:;~-—"
+
+POS_LABELS = {
+    "NNG": "일반명사", "NNP": "고유명사", "NNB": "의존명사", "NR": "수사", "NP": "대명사",
+    "VV": "동사", "VA": "형용사", "VX": "보조용언", "VCP": "긍정지정사", "VCN": "부정지정사",
+    "MM": "관형사", "MAG": "일반부사", "MAJ": "접속부사", "IC": "감탄사",
+    "XR": "어근", "SL": "외국어", "SH": "한자", "SN": "숫자",
+}
+
+
+def base_tag(tag):
+    """'VV-R', 'VA-I'처럼 규칙/불규칙 표시가 붙은 태그를 기본 태그로 합친다."""
+    return tag.split("-")[0]
+
+
+def make_lemma(form, tag):
+    return form + "다" if tag in PREDICATE_TAGS else form
+
+
+def eojeol_at(text, start, end):
+    """형태소가 속한 어절(공백 단위)을 돌려준다. 앞뒤 문장부호는 뗀다."""
+    left = text.rfind(" ", 0, start) + 1
+    right = text.find(" ", end)
+    if right == -1:
+        right = len(text)
+    return text[left:right].strip(PUNCT) or text[start:end]
+# ---- NIKL 동일 부분 끝 ----
 
 PAGE_RE = re.compile(r"^===== p\.(\d+) =====\s*$")
 GROUP_ORDER = ["초등1단계", "초등2단계", "초등3단계", "중학"]

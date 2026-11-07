@@ -2,8 +2,11 @@
 """성인문해 교과서(NLC) OCR 텍스트에서 OCR 잡음을 지우고 쪽 단위 정리본을 만든다.
 
 사용 예:
-    python3 nlc_clean.py NLC_corpus -o NLC_clean
-    python3 nlc_clean.py NLC_corpus -o NLC_clean --files "소망의나무 1"   # 한 권만 시험
+    python3 nlc_clean.py output -o NLC_clean
+    python3 nlc_clean.py output -o NLC_clean --files "소망의나무 1"   # 한 권만 시험
+
+입력은 20261027_NLC/output/ (Vision OCR 텍스트 37개) 중 분석 대상 15권만 읽는다.
+' copy'가 붙은 파일, 워크북, 사회·생활문해 자료는 읽지 않는다.
 
 처리 내용 (CLAUDE.md, handoff.md 설계안 및 2026-11-07 사용자 결정 반영):
   1. 쪽(`===== p.N =====`) 단위로 나눈다.
@@ -166,7 +169,7 @@ def join_lines(kiwi, kept, join_log, file_name, page_no):
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
-    parser.add_argument("input", help="NLC_corpus 폴더")
+    parser.add_argument("input", help="OCR 텍스트 폴더 (20261027_NLC/output)")
     parser.add_argument("-o", "--output", default="NLC_clean", help="정리본 폴더 (기본: NLC_clean)")
     parser.add_argument("--files", default="", help="처리할 책 이름, 쉼표 구분 (기본: 분석 대상 15권 전체)")
     args = parser.parse_args()
